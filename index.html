@@ -3,21 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Tech Impact Game - An educational board game about technology's impact on society">
     <title>Tech Impact Game</title>
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="game-container">
+    <div class="game-container">
         <canvas id="gameCanvas"></canvas>
         
-        <div id="controls">
+        <div id="controls" class="panel">
             <h3>Controls</h3>
             <p>Space - Roll/Get Question</p>
             <p>1-4 - Select Answer</p>
             <p>ESC - Quit Game</p>
         </div>
         
-        <div id="player-info">
+        <div id="player-info" class="panel">
             <h3>Select Number of Players</h3>
             <div class="player-select">
                 <button class="player-btn" data-players="2">2 Players</button>
@@ -26,36 +27,24 @@
             </div>
         </div>
         
-        <div id="question-box" class="hidden">
+        <div id="question-box" class="panel hidden">
             <div id="question-text"></div>
             <div id="answers"></div>
         </div>
         
-        <div id="wildcard-choice" class="hidden">
+        <div id="wildcard-choice" class="panel hidden">
             <h3>Wildcard Space!</h3>
             <p>Would you like to attempt a question?</p>
             <p>(Easy or Hard question, random chance)</p>
-            <button class="accept" onclick="game.handleWildcardChoice(true)">Accept Challenge</button>
-            <button class="skip" onclick="game.handleWildcardChoice(false)">Skip</button>
+            <div class="button-group">
+                <button class="accept">Accept Challenge</button>
+                <button class="skip">Skip</button>
+            </div>
         </div>
     </div>
     
     <div class="overlay hidden"></div>
     
-    <script src="js/game.js"></script>
-    <script>
-        // Wait for DOM to be fully loaded
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('DOM fully loaded');
-            try {
-                console.log('Creating game instance...');
-                window.game = new Game();
-                console.log('Game instance created successfully');
-            } catch (error) {
-                console.error('Error creating game:', error);
-                alert('Failed to load game. Check console for details.');
-            }
-        });
-    </script>
+    <script src="game.js"></script>
 </body>
 </html> 

@@ -1,87 +1,133 @@
 class Game {
     constructor() {
+        // Get canvas and context
         this.canvas = document.getElementById('gameCanvas');
         this.ctx = this.canvas.getContext('2d');
         
         // Set canvas size
-        this.canvas.width = 1000;
-        this.canvas.height = 1000;
+        this.canvas.width = 800;
+        this.canvas.height = 800;
         
-        // Constants
-        this.BOARD_SIZE = 800;
-        this.SPACE_SIZE = 40;
-        this.PLAYER_SIZE = 25;
-        
-        // Colors
-        this.colors = {
-            WHITE: '#FFFFFF',
-            BLACK: '#000000',
-            RED: '#FF3232',
-            GREEN: '#32FF32',
-            YELLOW: '#FFFF32',
-            BOARD_BORDER: '#B40000',
-            LADDER_COLOR: '#C86400',
-            HIGHLIGHT_COLOR: '#FFD700',
-            WINNER_GREEN: '#64FF96',
-            WILDCARD_COLOR: '#FFD700'
-        };
+        // Game constants
+        this.BOARD_SIZE = 700;
+        this.SQUARE_SIZE = 100;
+        this.PLAYER_SIZE = 30;
         
         // Game state
-        this.boardPositions = this.createBoardPositions();
-        this.ladders = this.createLadders();
-        this.wildcardPositions = this.createWildcardPositions();
-        this.currentPlayer = 0;
         this.players = [];
-        this.gameWon = false;
+        this.currentPlayer = 0;
         this.gameStarted = false;
+        this.gameWon = false;
+        this.currentQuestion = null;
+        
+        // Create board positions
+        this.boardPositions = this.createBoardPositions();
+        
+        // Create ladders and wildcards
+        this.ladders = [
+            [2, 22],  // From position 2 to 22
+            [4, 32],  // From position 4 to 32
+            [24, 33]  // From position 24 to 33
+        ];
+        
+        this.wildcardPositions = [8, 21, 35, 42]; // Positions of wildcard spaces
+        
+        // Questions data
+        this.questions = {
+            easy: [
+                {
+                    question: "How has remote work technology changed workplace dynamics?",
+                    correct: "Increased flexibility but blurred work-life boundaries",
+                    wrong: [
+                        "Enhanced team collaboration but reduced individual productivity",
+                        "Improved communication while increasing operational costs",
+                        "Strengthened company culture but complicated project management"
+                    ],
+                    moves: 2
+                }
+            ],
+            hard: [
+                {
+                    question: "How has quantum computing potential impacted current cryptography?",
+                    correct: "Spurred development of quantum-resistant algorithms while raising security concerns",
+                    wrong: [
+                        "Enhanced encryption methods while obsoleting existing security systems",
+                        "Accelerated cryptographic research while destabilizing current protocols",
+                        "Improved computational security while increasing implementation costs"
+                    ],
+                    moves: 4
+                }
+            ]
+        };
         
         // Start game loop
         this.gameLoop();
         
-        // Show player selection
-        this.setupPlayerSelection();
-        
-        // Event listeners
+        // Add event listeners
         document.addEventListener('keydown', (e) => this.handleKeyPress(e));
+        this.setupPlayerSelection();
+        this.setupWildcardButtons();
+    }
+    
+    createBoardPositions() {
+        const positions = [];
+        const startX = 50;
+        const startY = 700;
+        const squareSize = 100;
+        
+        for (let row = 0; row < 7; row++) {
+            const y = startY - (row * squareSize);
+            
+            if (row % 2 === 0) {
+                // Left to right
+                for (let col = 0; col < 7; col++) {
+                    positions.push({
+                        x: startX + (col * squareSize) + squareSize/2,
+                        y: y + squareSize/2
+                    });
+                }
+            } else {
+                // Right to left
+                for (let col = 6; col >= 0; col--) {
+                    positions.push({
+                        x: startX + (col * squareSize) + squareSize/2,
+                        y: y + squareSize/2
+                    });
+                }
+            }
+        }
+        
+        return positions;
     }
     
     setupPlayerSelection() {
-        console.log('Setting up player selection...');
-        const playerInfo = document.getElementById('player-info');
-        
-        // Create the HTML content
-        playerInfo.innerHTML = `
-            <h3>Select Number of Players</h3>
-            <div class="player-select">
-                <button class="player-btn" data-players="2">2 Players</button>
-                <button class="player-btn" data-players="3">3 Players</button>
-                <button class="player-btn" data-players="4">4 Players</button>
-            </div>
-        `;
-        
-        // Add event listeners
-        const buttons = playerInfo.querySelectorAll('.player-btn');
+        const buttons = document.querySelectorAll('.player-btn');
         buttons.forEach(button => {
             button.addEventListener('click', () => {
                 const players = parseInt(button.dataset.players);
-                console.log(`Selected ${players} players`);
-                this.setPlayerCount(players);
+                this.startGame(players);
             });
         });
     }
     
-    setPlayerCount(count) {
-        console.log(`Setting player count to ${count}`);
+    setupWildcardButtons() {
+        const acceptButton = document.querySelector('#wildcard-choice .accept');
+        const skipButton = document.querySelector('#wildcard-choice .skip');
+        
+        acceptButton.addEventListener('click', () => this.handleWildcardChoice(true));
+        skipButton.addEventListener('click', () => this.handleWildcardChoice(false));
+    }
+    
+    startGame(playerCount) {
         const startPos = this.boardPositions[0];
         const playerColors = ['#000000', '#FF3232', '#32FF32', '#FFFF32'];
         
-        this.players = Array(count).fill().map((_, i) => ({
+        this.players = Array(playerCount).fill().map((_, i) => ({
             position: {...startPos},
             targetPosition: {...startPos},
-            isActive: false,
-            score: 1,
             boardPosition: 0,
             isMoving: false,
+            isActive: false,
             color: playerColors[i]
         }));
         
@@ -94,131 +140,35 @@ class Game {
         
         this.currentPlayer = 0;
         this.gameStarted = true;
-        console.log('Game started with', count, 'players');
-    }
-    
-    createBoardPositions() {
-        const positions = [];
-        const marginX = 150;
-        const marginY = 150;
-        const spacing = 100;
-        
-        // Create 7x7 grid
-        for (let row = 6; row >= 0; row--) {
-            const colRange = row % 2 === 0 ? 
-                Array.from({length: 7}, (_, i) => i) : 
-                Array.from({length: 7}, (_, i) => 6 - i);
-            
-            for (const col of colRange) {
-                positions.push({
-                    x: marginX + col * spacing,
-                    y: marginY + row * spacing
-                });
-            }
-        }
-        
-        return positions;
-    }
-    
-    createLadders() {
-        // Similar to Python version but adapted for JavaScript
-        const ladders = [];
-        const usedPositions = new Set();
-        const targetRows = [[1, 2], [4, 5]];
-        
-        for (const [startRow, endRow] of targetRows) {
-            let attempts = 0;
-            let validLadder = false;
-            
-            while (!validLadder && attempts < 20) {
-                const start = startRow * 7 + Math.floor(Math.random() * 7);
-                const end = endRow * 7 + Math.floor(Math.random() * 7);
-                
-                if (!usedPositions.has(start) && !usedPositions.has(end)) {
-                    usedPositions.add(start);
-                    usedPositions.add(end);
-                    ladders.push([start, end]);
-                    validLadder = true;
-                }
-                
-                attempts++;
-            }
-        }
-        
-        return ladders;
-    }
-    
-    createWildcardPositions() {
-        // Similar to Python version but adapted for JavaScript
-        const usedPositions = new Set(
-            this.ladders.flatMap(([start, end]) => [start, end])
-        );
-        
-        const possiblePositions = [];
-        for (let i = 7; i < this.boardPositions.length - 7; i++) {
-            if (!usedPositions.has(i)) {
-                const row = Math.floor(i / 7);
-                if (row >= 1 && row <= 5) {
-                    possiblePositions.push(i);
-                }
-            }
-        }
-        
-        // Randomly select 4 positions
-        return this.shuffleArray(possiblePositions).slice(0, 4);
-    }
-    
-    shuffleArray(array) {
-        for (let i = array.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [array[i], array[j]] = [array[j], array[i]];
-        }
-        return array;
     }
     
     gameLoop() {
-        this.update();
-        this.draw();
-        requestAnimationFrame(() => this.gameLoop());
-    }
-    
-    update() {
-        // Update player positions
-        for (const player of this.players) {
-            if (player.isMoving) {
-                const dx = player.targetPosition.x - player.position.x;
-                const dy = player.targetPosition.y - player.position.y;
-                const distance = Math.sqrt(dx * dx + dy * dy);
-                
-                if (distance < 10) {
-                    player.position = {...player.targetPosition};
-                    player.isMoving = false;
-                } else {
-                    const moveRatio = 10 / distance;
-                    player.position.x += dx * moveRatio;
-                    player.position.y += dy * moveRatio;
-                }
-            }
-        }
-    }
-    
-    draw() {
         // Clear canvas
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         
-        // Draw board background
-        this.ctx.fillStyle = '#f0f0f0';
-        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        // Draw board
+        this.drawBoard();
         
-        // Draw board squares
-        const squareSize = 80;
+        // Draw players
+        this.drawPlayers();
+        
+        // Request next frame
+        requestAnimationFrame(() => this.gameLoop());
+    }
+    
+    drawBoard() {
+        // Draw squares
+        const startX = 50;
+        const startY = 50;
+        const squareSize = 100;
+        
         for (let row = 0; row < 7; row++) {
             for (let col = 0; col < 7; col++) {
-                const x = col * squareSize + 50;
-                const y = (6 - row) * squareSize + 50;
+                const x = startX + (col * squareSize);
+                const y = startY + (row * squareSize);
                 
                 // Draw square
-                this.ctx.fillStyle = '#ffffff';
+                this.ctx.fillStyle = '#FFFFFF';
                 this.ctx.strokeStyle = '#000000';
                 this.ctx.lineWidth = 1;
                 this.ctx.fillRect(x, y, squareSize, squareSize);
@@ -227,8 +177,9 @@ class Game {
                 // Draw position number
                 const position = row * 7 + (row % 2 === 0 ? col : 6 - col);
                 this.ctx.fillStyle = '#000000';
-                this.ctx.font = '16px Arial';
+                this.ctx.font = '20px Arial';
                 this.ctx.textAlign = 'center';
+                this.ctx.textBaseline = 'middle';
                 this.ctx.fillText(position + 1, x + squareSize/2, y + squareSize/2);
             }
         }
@@ -245,7 +196,7 @@ class Game {
             this.ctx.stroke();
         }
         
-        // Draw wildcard spaces
+        // Draw wildcards
         this.ctx.fillStyle = '#FFD700';
         for (const position of this.wildcardPositions) {
             const pos = this.boardPositions[position];
@@ -260,10 +211,28 @@ class Game {
             this.ctx.textBaseline = 'middle';
             this.ctx.fillText('?', pos.x, pos.y);
         }
+    }
+    
+    drawPlayers() {
+        if (!this.gameStarted) return;
         
-        // Draw players
         this.players.forEach((player, index) => {
-            // Draw player circle
+            // Update player position with animation
+            if (player.isMoving) {
+                const dx = player.targetPosition.x - player.position.x;
+                const dy = player.targetPosition.y - player.position.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance > 5) {
+                    player.position.x += dx * 0.1;
+                    player.position.y += dy * 0.1;
+                } else {
+                    player.position = {...player.targetPosition};
+                    player.isMoving = false;
+                }
+            }
+            
+            // Draw player
             this.ctx.fillStyle = player.color;
             this.ctx.beginPath();
             this.ctx.arc(player.position.x, player.position.y, this.PLAYER_SIZE, 0, Math.PI * 2);
@@ -276,7 +245,7 @@ class Game {
             
             // Draw player number
             this.ctx.fillStyle = player.color === '#000000' ? '#FFFFFF' : '#000000';
-            this.ctx.font = 'bold 16px Arial';
+            this.ctx.font = 'bold 20px Arial';
             this.ctx.textAlign = 'center';
             this.ctx.textBaseline = 'middle';
             this.ctx.fillText(index + 1, player.position.x, player.position.y);
@@ -291,25 +260,10 @@ class Game {
             this.ctx.arc(currentPlayer.position.x, currentPlayer.position.y, this.PLAYER_SIZE + 5, 0, Math.PI * 2);
             this.ctx.stroke();
         }
-        
-        // Request next frame
-        requestAnimationFrame(() => this.draw());
-    }
-    
-    updatePlayerInfo() {
-        const player = this.players[this.currentPlayer];
-        if (player) {
-            const playerInfo = document.getElementById('player-info');
-            playerInfo.innerHTML = `
-                <h3>Player ${this.currentPlayer + 1}'s Turn</h3>
-                <p>Score: ${player.score}</p>
-            `;
-        }
     }
     
     handleKeyPress(event) {
-        // Only handle key events if game has started and there are players
-        if (!this.gameStarted || this.players.length === 0 || this.gameWon) return;
+        if (!this.gameStarted || this.gameWon) return;
         
         switch (event.code) {
             case 'Space':
@@ -319,10 +273,11 @@ class Game {
             case 'Digit2':
             case 'Digit3':
             case 'Digit4':
-                this.handleAnswerSelection(parseInt(event.key) - 1);
+                const answer = parseInt(event.key) - 1;
+                this.handleAnswerSelection(answer);
                 break;
             case 'Escape':
-                // Handle game exit
+                this.gameWon = true;
                 break;
         }
     }
@@ -333,92 +288,43 @@ class Game {
         const player = this.players[this.currentPlayer];
         if (!player.isActive) {
             player.isActive = true;
-            this.currentPlayer = (this.currentPlayer + 1) % this.players.length;
-        } else {
             this.askQuestion();
         }
     }
     
-    // Add the questions data
-    questions = {
-        easy: [
-            {
-                question: "How has remote work technology changed workplace dynamics?",
-                correct: "Increased flexibility but blurred work-life boundaries",
-                wrong: [
-                    "Enhanced team collaboration but reduced individual productivity",
-                    "Improved communication while increasing operational costs",
-                    "Strengthened company culture but complicated project management"
-                ],
-                moves: 2
-            },
-            // ... more easy questions ...
-        ],
-        medium: [
-            {
-                question: "How has social media influenced political discourse?",
-                correct: "Created echo chambers while enabling broader political participation",
-                wrong: [
-                    "Enhanced information sharing while reducing factual verification",
-                    "Increased political engagement while polarizing public opinion",
-                    "Expanded democratic access while compromising meaningful debate"
-                ],
-                moves: 3
-            },
-            // ... more medium questions ...
-        ],
-        hard: [
-            {
-                question: "How has quantum computing potential impacted current cryptography?",
-                correct: "Spurred development of quantum-resistant algorithms while raising security concerns",
-                wrong: [
-                    "Enhanced encryption methods while obsoleting existing security systems",
-                    "Accelerated cryptographic research while destabilizing current protocols",
-                    "Improved computational security while increasing implementation costs"
-                ],
-                moves: 4
-            },
-            // ... more hard questions ...
-        ]
-    };
-
-    askQuestion() {
-        // Select random difficulty
-        const difficulties = ['easy', 'medium', 'hard'];
-        const difficulty = difficulties[Math.floor(Math.random() * difficulties.length)];
-        
-        // Select random question from difficulty
-        const questionSet = this.questions[difficulty];
-        const question = questionSet[Math.floor(Math.random() * questionSet.length)];
-        
-        // Create answer options
+    askQuestion(isWildcard = false) {
+        const questions = isWildcard ? 
+            Math.random() < 0.5 ? this.questions.easy : this.questions.hard :
+            this.questions.easy;
+            
+        const question = questions[Math.floor(Math.random() * questions.length)];
         const options = [question.correct, ...question.wrong];
         this.shuffleArray(options);
         
-        // Store correct answer and moves
         this.currentQuestion = {
             text: question.question,
             correct: question.correct,
-            moves: question.moves,
-            options: options
+            options: options,
+            moves: question.moves
         };
         
         // Show question box
         const questionBox = document.getElementById('question-box');
         const questionText = document.getElementById('question-text');
         const answersDiv = document.getElementById('answers');
+        const overlay = document.querySelector('.overlay');
         
-        questionBox.classList.remove('hidden');
         questionText.textContent = question.question;
-        
-        // Create answer buttons
         answersDiv.innerHTML = options.map((option, index) => `
             <button class="answer-button" onclick="game.handleAnswerSelection(${index})">
                 ${index + 1}. ${option}
             </button>
         `).join('');
+        
+        overlay.classList.remove('hidden');
+        questionBox.classList.remove('hidden');
     }
-
+    
     handleAnswerSelection(answerIndex) {
         if (!this.currentQuestion) return;
         
@@ -440,21 +346,24 @@ class Game {
         // Wait for animation and move player
         setTimeout(() => {
             const moves = isCorrect ? this.currentQuestion.moves : -1;
-            this.movePlayer(this.currentPlayer, moves);
+            this.movePlayer(moves);
             
             // Hide question box
             document.getElementById('question-box').classList.add('hidden');
+            document.querySelector('.overlay').classList.add('hidden');
             this.currentQuestion = null;
             
-            // Switch to next player if not on wildcard
-            if (!this.checkWildcard()) {
-                this.currentPlayer = (this.currentPlayer + 1) % this.players.length;
+            // Check for wildcard
+            if (this.checkWildcard()) {
+                this.showWildcardChoice();
+            } else {
+                this.nextTurn();
             }
         }, 2000);
     }
-
-    movePlayer(playerIndex, spaces) {
-        const player = this.players[playerIndex];
+    
+    movePlayer(spaces) {
+        const player = this.players[this.currentPlayer];
         let newPosition = player.boardPosition + spaces;
         
         // Keep within bounds
@@ -476,12 +385,48 @@ class Game {
         player.boardPosition = newPosition;
         player.targetPosition = this.boardPositions[newPosition];
         player.isMoving = true;
-        player.score = newPosition + 1;
+        
+        // Update score display
+        const playerInfo = document.getElementById('player-info');
+        playerInfo.innerHTML = `
+            <h3>Player ${this.currentPlayer + 1}'s Turn</h3>
+            <p>Score: ${newPosition + 1}</p>
+        `;
     }
-
+    
     checkWildcard() {
         const player = this.players[this.currentPlayer];
         return this.wildcardPositions.includes(player.boardPosition);
+    }
+    
+    showWildcardChoice() {
+        document.getElementById('wildcard-choice').classList.remove('hidden');
+        document.querySelector('.overlay').classList.remove('hidden');
+    }
+    
+    handleWildcardChoice(accepted) {
+        document.getElementById('wildcard-choice').classList.add('hidden');
+        
+        if (accepted) {
+            this.askQuestion(true);
+        } else {
+            document.querySelector('.overlay').classList.add('hidden');
+            this.nextTurn();
+        }
+    }
+    
+    nextTurn() {
+        const player = this.players[this.currentPlayer];
+        player.isActive = false;
+        this.currentPlayer = (this.currentPlayer + 1) % this.players.length;
+    }
+    
+    shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
     }
 }
 
