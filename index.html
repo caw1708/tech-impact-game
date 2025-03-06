@@ -8,7 +8,7 @@
 </head>
 <body>
     <div id="game-container">
-        <canvas id="gameCanvas" width="800" height="800"></canvas>
+        <canvas id="gameCanvas"></canvas>
         
         <div id="controls">
             <h3>Controls</h3>
@@ -20,9 +20,9 @@
         <div id="player-info">
             <h3>Select Number of Players</h3>
             <div class="player-select">
-                <button onclick="game.setPlayerCount(2)">2 Players</button>
-                <button onclick="game.setPlayerCount(3)">3 Players</button>
-                <button onclick="game.setPlayerCount(4)">4 Players</button>
+                <button class="player-btn" data-players="2">2 Players</button>
+                <button class="player-btn" data-players="3">3 Players</button>
+                <button class="player-btn" data-players="4">4 Players</button>
             </div>
         </div>
         
@@ -44,11 +44,18 @@
     
     <script src="js/game.js"></script>
     <script>
-        // Initialize game when window loads
-        window.onload = function() {
-            window.game = new Game();
-            game.initialize();
-        };
+        // Wait for DOM to be fully loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM fully loaded');
+            try {
+                console.log('Creating game instance...');
+                window.game = new Game();
+                console.log('Game instance created successfully');
+            } catch (error) {
+                console.error('Error creating game:', error);
+                alert('Failed to load game. Check console for details.');
+            }
+        });
     </script>
 </body>
 </html> 

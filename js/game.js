@@ -33,68 +33,68 @@ class Game {
         this.currentPlayer = 0;
         this.players = [];
         this.gameWon = false;
-        
-        // Load assets
-        this.loadAssets().then(() => {
-            this.init();
-        });
-        
-        // Event listeners
-        document.addEventListener('keydown', this.handleKeyPress.bind(this));
-    }
-    
-    async loadAssets() {
-        // Load pawn images
-        this.pawnBlack = await this.loadImage('assets/pawn_black.png');
-        this.pawnWhite = await this.loadImage('assets/pawn_white.png');
-    }
-    
-    loadImage(src) {
-        return new Promise((resolve, reject) => {
-            const img = new Image();
-            img.onload = () => resolve(img);
-            img.onerror = reject;
-            img.src = src;
-        });
-    }
-    
-    init() {
-        // Initialize players
-        this.selectPlayerCount();
-    }
-    
-    selectPlayerCount() {
-        // Create player selection UI with styled buttons
-        const playerInfo = document.getElementById('player-info');
-        playerInfo.style.pointerEvents = 'auto';  // Make buttons clickable
-        playerInfo.innerHTML = `
-            <h3>Select Number of Players</h3>
-            <div class="player-select" style="display: flex; gap: 10px; margin-top: 15px;">
-                <button onclick="game.setPlayerCount(2)" style="padding: 10px 20px; border-radius: 5px; cursor: pointer;">2 Players</button>
-                <button onclick="game.setPlayerCount(3)" style="padding: 10px 20px; border-radius: 5px; cursor: pointer;">3 Players</button>
-                <button onclick="game.setPlayerCount(4)" style="padding: 10px 20px; border-radius: 5px; cursor: pointer;">4 Players</button>
-            </div>
-        `;
-    }
-    
-    setPlayerCount(count) {
-        // Create players
-        const startPos = this.boardPositions[0];
-        const playerColors = ['#000000', '#FFFF32', '#32FF32', '#FF3232'];
-        
-        this.players = Array(count).fill().map((_, i) => ({
-            color: playerColors[i],
-            position: {...startPos},
-            targetPosition: {...startPos},
-            isActive: false,
-            score: 0,
-            boardPosition: 0,
-            isMoving: false,
-            pawnType: i % 2 === 0 ? 'black' : 'white'
-        }));
+        this.gameStarted = false;
         
         // Start game loop
         this.gameLoop();
+        
+        // Show player selection
+        this.setupPlayerSelection();
+        
+        // Event listeners
+        document.addEventListener('keydown', (e) => this.handleKeyPress(e));
+    }
+    
+    setupPlayerSelection() {
+        console.log('Setting up player selection...');
+        const playerInfo = document.getElementById('player-info');
+        
+        // Create the HTML content
+        playerInfo.innerHTML = `
+            <h3>Select Number of Players</h3>
+            <div class="player-select">
+                <button class="player-btn" data-players="2">2 Players</button>
+                <button class="player-btn" data-players="3">3 Players</button>
+                <button class="player-btn" data-players="4">4 Players</button>
+            </div>
+        `;
+        
+        // Add event listeners
+        const buttons = playerInfo.querySelectorAll('.player-btn');
+        buttons.forEach(button => {
+            button.addEventListener('click', () => {
+                const players = parseInt(button.dataset.players);
+                console.log(`Selected ${players} players`);
+                this.setPlayerCount(players);
+            });
+        });
+    }
+    
+    setPlayerCount(count) {
+        console.log(`Setting player count to ${count}`);
+        const startPos = this.boardPositions[0];
+        const playerColors = ['#000000', '#FF3232', '#32FF32', '#FFFF32'];
+        
+        this.players = Array(count).fill().map((_, i) => ({
+            position: {...startPos},
+            targetPosition: {...startPos},
+            isActive: false,
+            score: 1,
+            boardPosition: 0,
+            isMoving: false,
+            color: playerColors[i]
+        }));
+        
+        // Update UI
+        const playerInfo = document.getElementById('player-info');
+        playerInfo.innerHTML = `
+            <h3>Player 1's Turn</h3>
+            <p>Score: 1</p>
+        `;
+        
+        this.currentPlayer = 0;
+        this.gameStarted = true;
+        console.log('Game started with', count, 'players');
     }
     
     createBoardPositions() {
@@ -263,46 +263,34 @@ class Game {
         
         // Draw players
         this.players.forEach((player, index) => {
-            // Update player position with animation
-            if (player.isMoving) {
-                const dx = player.targetPosition.x - player.position.x;
-                const dy = player.targetPosition.y - player.position.y;
-                const distance = Math.sqrt(dx * dx + dy * dy);
-                
-                if (distance > 5) {
-                    player.position.x += dx * 0.1;
-                    player.position.y += dy * 0.1;
-                } else {
-                    player.position = {...player.targetPosition};
-                    player.isMoving = false;
-                }
-            }
+            // Draw player circle
+            this.ctx.fillStyle = player.color;
+            this.ctx.beginPath();
+            this.ctx.arc(player.position.x, player.position.y, this.PLAYER_SIZE, 0, Math.PI * 2);
+            this.ctx.fill();
             
-            // Draw player
-            const pawnImage = player.pawnType === 'black' ? this.pawnBlack : this.pawnWhite;
-            const size = this.PLAYER_SIZE * 2.5;
-            this.ctx.drawImage(pawnImage, 
-                             player.position.x - size/2,
-                             player.position.y - size/2,
-                             size, size);
+            // Draw player border
+            this.ctx.strokeStyle = '#000000';
+            this.ctx.lineWidth = 2;
+            this.ctx.stroke();
             
             // Draw player number
-            this.ctx.fillStyle = '#000000';
+            this.ctx.fillStyle = player.color === '#000000' ? '#FFFFFF' : '#000000';
             this.ctx.font = 'bold 16px Arial';
             this.ctx.textAlign = 'center';
-            this.ctx.fillText(index + 1, player.position.x, player.position.y - 30);
+            this.ctx.textBaseline = 'middle';
+            this.ctx.fillText(index + 1, player.position.x, player.position.y);
         });
         
         // Draw current player indicator
-        const currentPlayer = this.players[this.currentPlayer];
-        this.ctx.strokeStyle = '#FF4081';
-        this.ctx.lineWidth = 3;
-        this.ctx.beginPath();
-        this.ctx.arc(currentPlayer.position.x, currentPlayer.position.y, 25, 0, Math.PI * 2);
-        this.ctx.stroke();
-        
-        // Update player info
-        this.updatePlayerInfo();
+        if (this.players.length > 0) {
+            const currentPlayer = this.players[this.currentPlayer];
+            this.ctx.strokeStyle = '#FF4081';
+            this.ctx.lineWidth = 3;
+            this.ctx.beginPath();
+            this.ctx.arc(currentPlayer.position.x, currentPlayer.position.y, this.PLAYER_SIZE + 5, 0, Math.PI * 2);
+            this.ctx.stroke();
+        }
         
         // Request next frame
         requestAnimationFrame(() => this.draw());
@@ -320,7 +308,8 @@ class Game {
     }
     
     handleKeyPress(event) {
-        if (this.gameWon) return;
+        // Only handle key events if game has started and there are players
+        if (!this.gameStarted || this.players.length === 0 || this.gameWon) return;
         
         switch (event.code) {
             case 'Space':
@@ -339,6 +328,8 @@ class Game {
     }
     
     handleSpacePress() {
+        if (!this.gameStarted || this.players.length === 0) return;
+        
         const player = this.players[this.currentPlayer];
         if (!player.isActive) {
             player.isActive = true;
