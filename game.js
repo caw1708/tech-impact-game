@@ -504,53 +504,39 @@ QUESTIONS = {
             this.askQuestion();
         }
     }
-
-
-      const questions = isWildcard ? 
-         Math.random() < 0.5 ? this.questions.easy : this.questions.hard :
-         this.questions.easy;
- 
-     // Check if there are any questions left
-     if (questions.length === 0) {
-         alert("No more questions available!");
-         return;
-     }
- 
-     // Select a random question
-     const questionIndex = Math.floor(Math.random() * questions.length);
-     const question = questions[questionIndex];
-     
-     // Remove the selected question from the pool
-     questions.splice(questionIndex, 1);
- 
-     const options = [question.correct, ...question.wrong];
-     this.shuffleArray(options);
- 
-     this.currentQuestion = {
-         text: question.question,
-         correct: question.correct,
-         options: options,
-         moves: question.moves
-     };
- 
-     // Show question box
-     const questionBox = document.getElementById('question-box');
-     const questionText = document.getElementById('question-text');
-     const answersDiv = document.getElementById('answers');
-     const overlay = document.querySelector('.overlay');
- 
-     questionText.textContent = question.question;
-     answersDiv.innerHTML = options.map((option, index) => `
-         <button class="answer-button" onclick="game.handleAnswerSelection(${index})">
-             ${index + 1}. ${option}
-         </button>
-     `).join('');
- 
-     overlay.classList.remove('hidden');
-     questionBox.classList.remove('hidden');
- }
- 
- 
+    
+    askQuestion(isWildcard = false) {
+        const questions = isWildcard ? 
+            Math.random() < 0.5 ? this.questions.easy : this.questions.hard :
+            this.questions.easy;
+            
+        const question = questions[Math.floor(Math.random() * questions.length)];
+        const options = [question.correct, ...question.wrong];
+        this.shuffleArray(options);
+        
+        this.currentQuestion = {
+            text: question.question,
+            correct: question.correct,
+            options: options,
+            moves: question.moves
+        };
+        
+        // Show question box
+        const questionBox = document.getElementById('question-box');
+        const questionText = document.getElementById('question-text');
+        const answersDiv = document.getElementById('answers');
+        const overlay = document.querySelector('.overlay');
+        
+        questionText.textContent = question.question;
+        answersDiv.innerHTML = options.map((option, index) => `
+            <button class="answer-button" onclick="game.handleAnswerSelection(${index})">
+                ${index + 1}. ${option}
+            </button>
+        `).join('');
+        
+        overlay.classList.remove('hidden');
+        questionBox.classList.remove('hidden');
+    }
     
     handleAnswerSelection(answerIndex) {
         if (!this.currentQuestion) return;
