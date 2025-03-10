@@ -33,32 +33,245 @@ class Game {
         this.wildcardPositions = [8, 21, 35, 42]; // Positions of wildcard spaces
         
         // Questions data
-        this.questions = {
-            easy: [
-                {
-                    question: "How has remote work technology changed workplace dynamics?",
-                    correct: "Increased flexibility but blurred work-life boundaries",
-                    wrong: [
-                        "Enhanced team collaboration but reduced individual productivity",
-                        "Improved communication while increasing operational costs",
-                        "Strengthened company culture but complicated project management"
-                    ],
-                    moves: 2
-                }
+QUESTIONS = {
+    "easy": [
+        {
+            "question": "How has remote work technology changed workplace dynamics?",
+            "correct": "Increased flexibility but blurred work-life boundaries",
+            "wrong": [
+                "Enhanced team collaboration but reduced individual productivity",
+                "Improved communication while increasing operational costs",
+                "Strengthened company culture but complicated project management"
             ],
-            hard: [
-                {
-                    question: "How has quantum computing potential impacted current cryptography?",
-                    correct: "Spurred development of quantum-resistant algorithms while raising security concerns",
-                    wrong: [
-                        "Enhanced encryption methods while obsoleting existing security systems",
-                        "Accelerated cryptographic research while destabilizing current protocols",
-                        "Improved computational security while increasing implementation costs"
-                    ],
-                    moves: 4
-                }
-            ]
-        };
+            "moves": 2
+        },
+        {
+            "question": "What impact has digital payment technology had on commerce?",
+            "correct": "Enabled global transactions while raising cybersecurity concerns",
+            "wrong": [
+                "Accelerated local economies while increasing transaction fees",
+                "Simplified banking processes but created digital divide issues",
+                "Enhanced payment tracking while complicating refund processes"
+            ],
+            "moves": 2
+        },
+        {
+            "question": "How have smartphones affected daily communication?",
+            "correct": "Enhanced connectivity while potentially reducing face-to-face interaction quality",
+            "wrong": [
+                "Improved professional networking while decreasing personal relationships",
+                "Increased information access while reducing attention spans significantly",
+                "Enabled instant messaging while creating communication dependencies"
+            ],
+            "moves": 2
+        },
+        {
+            "question": "What effect has streaming technology had on entertainment?",
+            "correct": "Increased content accessibility while changing traditional media consumption patterns",
+            "wrong": [
+                "Enhanced content variety while reducing overall production quality standards",
+                "Improved viewing flexibility while fragmenting audience engagement levels",
+                "Expanded entertainment options while decreasing content monetization value"
+            ],
+            "moves": 2
+        },
+        {
+            "question": "How has GPS technology impacted navigation and travel?",
+            "correct": "Improved accessibility while potentially reducing spatial awareness skills",
+            "wrong": [
+                "Enhanced route optimization while increasing dependency on technology",
+                "Simplified travel planning while decreasing local knowledge retention",
+                "Accelerated journey times while reducing environmental awareness"
+            ],
+            "moves": 2
+        }
+    ],
+    "medium": [
+        {
+            "question": "How has social media influenced political discourse?",
+            "correct": "Created echo chambers while enabling broader political participation",
+            "wrong": [
+                "Enhanced information sharing while reducing factual verification",
+                "Increased political engagement while polarizing public opinion",
+                "Expanded democratic access while compromising meaningful debate"
+            ],
+            "moves": 3
+        },
+        {
+            "question": "What impact has automation had on the manufacturing sector?",
+            "correct": "Increased efficiency while requiring workforce skill adaptation",
+            "wrong": [
+                "Enhanced production quality while reducing workforce diversity",
+                "Improved operational safety while increasing maintenance costs",
+                "Accelerated output rates while complicating quality control"
+            ],
+            "moves": 3
+        },
+        {
+            "question": "How has AI affected medical diagnosis?",
+            "correct": "Enhanced detection accuracy while raising questions about human oversight",
+            "wrong": [
+                "Improved diagnostic speed while increasing healthcare inequality",
+                "Accelerated treatment planning while reducing patient interaction",
+                "Enhanced data analysis while complicating insurance processes"
+            ],
+            "moves": 3
+        },
+        {
+            "question": "What effect has blockchain had on financial systems?",
+            "correct": "Enabled decentralization while introducing new regulatory challenges",
+            "wrong": [
+                "Enhanced transaction speed while increasing energy consumption",
+                "Improved financial security while complicating user accessibility",
+                "Strengthened asset tracking while raising scalability concerns"
+            ],
+            "moves": 3
+        },
+        {
+            "question": "How has e-learning technology impacted education?",
+            "correct": "Increased accessibility while highlighting digital divide issues",
+            "wrong": [
+                "Enhanced content delivery while reducing student engagement",
+                "Improved resource availability while decreasing practical skills",
+                "Expanded learning options while challenging assessment methods"
+            ],
+            "moves": 3
+        },
+        {
+            "question": "What impact has IoT had on home security?",
+            "correct": "Enhanced monitoring capabilities while introducing new vulnerabilities",
+            "wrong": [
+                "Improved detection systems while increasing false alarm rates",
+                "Strengthened access control while complicating user privacy",
+                "Advanced surveillance features while raising maintenance costs"
+            ],
+            "moves": 3
+        },
+        {
+            "question": "How have dating apps changed relationship formation?",
+            "correct": "Expanded dating pools while potentially commodifying relationships",
+            "wrong": [
+                "Increased match opportunities while reducing meaningful connections",
+                "Enhanced partner selection while complicating social dynamics",
+                "Improved dating efficiency while decreasing relationship longevity"
+            ],
+            "moves": 3
+        }
+    ],
+    "hard": [
+        {
+            "question": "How has quantum computing potential impacted current cryptography?",
+            "correct": "Spurred development of quantum-resistant algorithms while raising security concerns",
+            "wrong": [
+                "Enhanced encryption methods while obsoleting existing security systems",
+                "Accelerated cryptographic research while destabilizing current protocols",
+                "Improved computational security while increasing implementation costs"
+            ],
+            "moves": 4
+        },
+        {
+            "question": "What impact has deep learning had on content authenticity?",
+            "correct": "Enabled new creative tools while challenging information verification",
+            "wrong": [
+                "Enhanced content generation while undermining artistic originality",
+                "Improved media production while complicating copyright protection",
+                "Advanced creative capabilities while reducing human craftsmanship"
+            ],
+            "moves": 4
+        },
+        {
+            "question": "How has 5G technology affected IoT implementation?",
+            "correct": "Enabled new applications while raising infrastructure and security challenges",
+            "wrong": [
+                "Enhanced connectivity speed while increasing deployment complexity",
+                "Improved device communication while raising energy consumption concerns",
+                "Advanced network capabilities while complicating device compatibility"
+            ],
+            "moves": 4
+        },
+        {
+            "question": "What effect has cloud computing had on business operations?",
+            "correct": "Improved scalability while creating new dependencies and security risks",
+            "wrong": [
+                "Enhanced data accessibility while increasing operational complexity",
+                "Advanced resource management while raising compliance challenges",
+                "Improved business flexibility while complicating disaster recovery"
+            ],
+            "moves": 4
+        },
+        {
+            "question": "How has facial recognition affected privacy rights?",
+            "correct": "Enhanced security measures while raising ethical and civil liberty concerns",
+            "wrong": [
+                "Improved identification systems while compromising personal autonomy",
+                "Advanced surveillance capabilities while threatening social freedoms",
+                "Enhanced public safety while undermining individual privacy rights"
+            ],
+            "moves": 4
+        },
+        {
+            "question": "What impact has algorithmic trading had on market stability?",
+            "correct": "Increased liquidity while potentially amplifying market volatility",
+            "wrong": ["Only caused market crashes", "Made markets completely stable", "Had no effect on trading"],
+            "moves": 4
+        },
+        {
+            "question": "How has gene editing technology affected medical ethics?",
+            "correct": "Enabled new treatments while raising complex moral questions",
+            "wrong": ["Only created problems", "Solved all ethical issues", "Had no effect on medicine"],
+            "moves": 4
+        },
+        {
+            "question": "What effect has VR/AR had on professional training?",
+            "correct": "Enhanced simulation capabilities while raising questions about real-world skill transfer",
+            "wrong": ["Only increased training costs", "Made traditional training obsolete", "Had no effect on learning"],
+            "moves": 4
+        },
+        {
+            "question": "How has blockchain technology impacted supply chain management?",
+            "correct": "Improved traceability while requiring significant infrastructure changes",
+            "wrong": ["Only increased costs", "Solved all supply chain issues", "Had no effect on logistics"],
+            "moves": 4
+        },
+        {
+            "question": "What impact has machine learning had on job market evolution?",
+            "correct": "Created new roles while obsoleting others and requiring continuous skill adaptation",
+            "wrong": ["Only eliminated jobs", "Created only new jobs", "Had no effect on employment"],
+            "moves": 4
+        },
+        {
+            "question": "How has digital surveillance affected civil liberties?",
+            "correct": "Enhanced security capabilities while threatening personal privacy and freedom",
+            "wrong": ["Only improved safety", "Only violated rights", "Had no effect on society"],
+            "moves": 4
+        },
+        {
+            "question": "What effect has social media had on mental health?",
+            "correct": "Increased connectivity while potentially exacerbating anxiety and depression",
+            "wrong": ["Only improved wellbeing", "Only caused harm", "Had no psychological impact"],
+            "moves": 4
+        },
+        {
+            "question": "How has automation affected economic inequality?",
+            "correct": "Increased productivity while potentially widening the wealth gap",
+            "wrong": ["Only benefited everyone", "Only hurt workers", "Had no economic impact"],
+            "moves": 4
+        },
+        {
+            "question": "What impact has digital currency had on monetary policy?",
+            "correct": "Created new financial tools while challenging traditional banking systems",
+            "wrong": ["Only destabilized markets", "Replaced all physical currency", "Had no effect on economics"],
+            "moves": 4
+        },
+        {
+            "question": "How has AI affected creative industries?",
+            "correct": "Enhanced capabilities while raising questions about authorship and originality",
+            "wrong": ["Only replaced human creativity", "Only assisted humans", "Had no effect on art"],
+            "moves": 4
+        }
+    ]
+}
+
         
         // Start game loop
         this.gameLoop();
