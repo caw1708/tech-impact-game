@@ -284,7 +284,7 @@ QUESTIONS = {
     
     createBoardPositions() {
         const positions = [];
-        const startX = 50;
+        const startX = 0;
         const startY = 700;
         const squareSize = 100;
         
