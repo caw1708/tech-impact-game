@@ -1,4 +1,4 @@
-class Game {
+so i got this but from my question only one is elected so its only one question: class Game {
     constructor() {
         // Get canvas and context
         this.canvas = document.getElementById('gameCanvas');
@@ -646,4 +646,4 @@ QUESTIONS = {
 // Start the game when the page loads
 window.onload = () => {
     window.game = new Game();
-}; 
+}
