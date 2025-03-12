@@ -1,4 +1,4 @@
-so i got this but from my question only one is elected so its only one question: class Game {
+class Game {
     constructor() {
         // Get canvas and context
         this.canvas = document.getElementById('gameCanvas');
@@ -284,7 +284,7 @@ QUESTIONS = {
     
     createBoardPositions() {
         const positions = [];
-        const startX = 0;
+        const startX = 30;
         const startY = 700;
         const squareSize = 100;
         
